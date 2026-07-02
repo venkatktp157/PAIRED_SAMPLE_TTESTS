@@ -1,0 +1,15 @@
+# Ignore the Python virtual environment (contains thousands of local files)
+.venv/
+venv/
+ENV/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+
+# Ignore operating system garbage
+.DS_Store
+Thumbs.db
+
+# Ignore environment variables/secrets
+.env
