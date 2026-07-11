@@ -1,10 +1,9 @@
-import streamlit as pd
 import streamlit as st
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
 
-# Set page configuration
+# Set page configuration (Must be the very first Streamlit command)
 st.set_page_config(page_title="T-Test Calculator", layout="wide")
 
 st.title("📊 Interactive T-Test Statistical Calculator")
@@ -42,7 +41,7 @@ uploaded_file = st.sidebar.file_uploader("Choose a CSV or Excel file", type=["cs
 
 if uploaded_file is not None:
     try:
-        # Read file based on extension
+        # Read file safely based on extension
         if uploaded_file.name.endswith('.csv'):
             df = pd.read_csv(uploaded_file)
         else:
@@ -57,9 +56,6 @@ if uploaded_file is not None:
         
         col1_name = st.sidebar.selectbox("Select Sample 1 / Variable 1:", columns, index=0)
         col2_name = st.sidebar.selectbox("Select Sample 2 / Variable 2:", columns, index=min(1, len(columns)-1))
-        
-        # Clean data (drop NaNs for selected columns)
-        # data_clean = df[[col1_name, col2_name]].dropna()
         
         sample1 = df[col1_name].dropna().astype(float)
         sample2 = df[col2_name].dropna().astype(float)
@@ -92,7 +88,6 @@ if uploaded_file is not None:
                 st.table(desc_df)
             
             # --- T-TEST CALCULATIONS ---
-            # Define mapping for alternative hypothesis in scipy
             alt_mapping = {
                 "Two-Tailed": "two-sided",
                 "Greater (One-Tailed)": "greater",
@@ -101,23 +96,19 @@ if uploaded_file is not None:
             scipy_alt = alt_mapping[tail_type]
             
             if test_type == "Independent Samples T-Test":
-                # Check for equality of variances (Levene's Test)
                 levene_stat, levene_p = stats.levene(sample1, sample2)
                 equal_var = True if levene_p > 0.05 else False
                 
-                # Perform T-Test
                 t_stat, p_val = stats.ttest_ind(sample1, sample2, alternative=scipy_alt, equal_var=equal_var)
                 
-                # Degrees of freedom
                 if equal_var:
                     df_val = n1 + n2 - 2
                 else:
-                    # Welch's Satterthwaite equation for degrees of freedom
                     v1 = np.var(sample1, ddof=1) / n1
                     v2 = np.var(sample2, ddof=1) / n2
                     df_val = ((v1 + v2) ** 2) / ((v1 ** 2) / (n1 - 1) + (v2 ** 2) / (n2 - 1))
                 
-                test_info = f"Equal Variances Assumed: **{equal_var}** (Levene's p = {levene_p:.4f})"
+                test_info = f"Equal Variances Assumed: {equal_var} (Levene's p = {levene_p:.4f})"
                 
             else:  # Paired T-Test
                 t_stat, p_val = stats.ttest_rel(sample1, sample2, alternative=scipy_alt)
@@ -156,14 +147,25 @@ if uploaded_file is not None:
             else:
                 st.info(inference)
                 
+            # --- FIXED DYNAMIC CONTEXT BLOCK ---
+            # Using clean Markdown strings to completely sidestep frontend text formatting crashes
+            if tail_type == "Two-Tailed":
+                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 = \mu_2$ (The true means are equal)"
+                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 \neq \mu_2$ (The true means are not equal)"
+            elif tail_type == "Greater (One-Tailed)":
+                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 \le \mu_2$ (Mean of Sample 1 is $\le$ Sample 2)"
+                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 > \mu_2$ (Mean of Sample 1 is strictly greater)"
+            else:
+                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 \ge \mu_2$ (Mean of Sample 1 is $\ge$ Sample 2)"
+                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 < \mu_2$ (Mean of Sample 1 is strictly less)"
+            
             with st.expander("🔬 View Context & Assumptions applied"):
-                st.write(f"- **Test Context:** {test_info}")
-                st.write(f"- **Null Hypothesis ($H_0$):** $\mu_1 = \mu_2$ (The true means are equal).")
-                st.write(f"- **Alternative Hypothesis ($H_a$):** Type Chosen: *{tail_type}*")
-                st.write(f"- **Decision Rule:** Reject $H_0$ if P-Value < {alpha}")
+                st.markdown(f"- **Test Context:** {test_info}")
+                st.markdown(f"- {h0_str}")
+                st.markdown(f"- {ha_str}")
+                st.markdown(f"- **Decision Rule:** Reject $H_0$ if P-Value < {alpha}")
 
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
-        st.info("Please ensure your dataset contains numerical columns with appropriate data.")
 else:
     st.info("👋 Welcome! Please upload a `.csv` or `.xlsx` file using the sidebar to begin your analysis.")
