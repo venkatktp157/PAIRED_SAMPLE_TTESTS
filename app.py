@@ -148,17 +148,17 @@ if uploaded_file is not None:
                 st.info(inference)
                 
             # --- FIXED DYNAMIC CONTEXT BLOCK ---
-            # Using clean Markdown strings to completely sidestep frontend text formatting crashes
+            # Using raw strings (r"") to prevent escape character crashes, and clean symbols
             if tail_type == "Two-Tailed":
-                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 = \mu_2$ (The true means are equal)"
+                h0_str = r"**Null Hypothesis ($H_0$):** $\mu_1 = \mu_2$ (The true means are equal)"
                 ha_str = r"**Alternative Hypothesis ($H_a$):** $\mu_1 \neq \mu_2$ (The true means are not equal)"
             elif tail_type == "Greater (One-Tailed)":
-                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 \le \mu_2$ (Mean of Sample 1 is $\le$ Sample 2)"
-                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 > \mu_2$ (Mean of Sample 1 is strictly greater)"
-            else:
-                h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 \ge \mu_2$ (Mean of Sample 1 is $\ge$ Sample 2)"
-                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 < \mu_2$ (Mean of Sample 1 is strictly less)"
-            
+                h0_str = r"**Null Hypothesis ($H_0$):** $\mu_1 \le \mu_2$ (Mean of Sample 1 is ≤ Sample 2)"
+                ha_str = r"**Alternative Hypothesis ($H_a$):** $\mu_1 > \mu_2$ (Mean of Sample 1 is strictly greater)"
+            else:  # Less
+                h0_str = r"**Null Hypothesis ($H_0$):** $\mu_1 \ge \mu_2$ (Mean of Sample 1 is ≥ Sample 2)"
+                ha_str = r"**Alternative Hypothesis ($H_a$):** $\mu_1 < \mu_2$ (Mean of Sample 1 is strictly less)"
+                        
             with st.expander("🔬 View Context & Assumptions applied"):
                 st.markdown(f"- **Test Context:** {test_info}")
                 st.markdown(f"- {h0_str}")
