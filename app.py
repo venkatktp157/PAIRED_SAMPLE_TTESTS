@@ -57,15 +57,19 @@ if uploaded_file is not None:
         col1_name = st.sidebar.selectbox("Select Sample 1 / Variable 1:", columns, index=0)
         col2_name = st.sidebar.selectbox("Select Sample 2 / Variable 2:", columns, index=min(1, len(columns)-1))
         
-        sample1 = df[col1_name].dropna().astype(float)
-        sample2 = df[col2_name].dropna().astype(float)
+        # pd.to_numeric forces non-numeric strings to NaN, which then get dropped safely
+        sample1 = pd.to_numeric(df[col1_name], errors='coerce').dropna()
+        sample2 = pd.to_numeric(df[col2_name], errors='coerce').dropna()
         
         n1 = len(sample1)
         n2 = len(sample2)
         
         # --- VALIDATION & COMPUTATION ---
         proceed = True
-        if test_type == "Paired Samples T-Test" and n1 != n2:
+        if n1 < 2 or n2 < 2:
+            st.error("❌ **Error:** Both samples must have at least 2 valid numerical observations to compute statistics.")
+            proceed = False
+        elif test_type == "Paired Samples T-Test" and n1 != n2:
             st.error(f"❌ **Error:** Paired t-test requires both samples to have the same size. Currently, Sample 1 has {n1} rows and Sample 2 has {n2} rows after dropping missing values.")
             proceed = False
             
