@@ -151,7 +151,7 @@ if uploaded_file is not None:
             # Using clean Markdown strings to completely sidestep frontend text formatting crashes
             if tail_type == "Two-Tailed":
                 h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 = \mu_2$ (The true means are equal)"
-                ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 != \mu_2$ (The true means are not equal)"
+                ha_str = r"**Alternative Hypothesis ($H_a$):** $\mu_1 \neq \mu_2$ (The true means are not equal)"
             elif tail_type == "Greater (One-Tailed)":
                 h0_str = "**Null Hypothesis ($H_0$):** $\mu_1 \le \mu_2$ (Mean of Sample 1 is $\le$ Sample 2)"
                 ha_str = "**Alternative Hypothesis ($H_a$):** $\mu_1 > \mu_2$ (Mean of Sample 1 is strictly greater)"
